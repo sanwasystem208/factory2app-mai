@@ -1,0 +1,17 @@
+workmonitor
+2018-11-23
+
+httpserver
+  httpd.js
+ajaxserver
+  workmonitor.js  ver 1.0
+  assychecker.js  ver 1.0
+
+ver1.0  2018-11-23 新規発行
+ver1.1  2018-11-23 グリッドの配列、幅の調整
+ver1.2  2018-11-24 AssyChecker 納品日、仕向け先フォーム追加
+ver1.3a 2018-11-26 AssyChecker SMT友取り基板の照合修正,****/**** スラッシュ入りの対応
+ver1.3b 2018-11-26 AssyChecker スラッシュ入りは取り数チェック無
+ver1.3c 2018-11-27 AssyChecker 機種名の送信改善
+ver1.3d 2018-11-27 AssyChecker 機種名の送信改善2
+ver1.4a 2018-12-15 AssyChecker 貼り換えモード追加

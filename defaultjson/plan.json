@@ -1,0 +1,15 @@
+ {
+  "taskplan":
+    {
+        "_id" : "",
+        "fllowid" : "",
+        "flg" : 0,
+        "processno" : 0,
+        "processname" : "",
+        "start" : "",
+        "sortno" : 0,
+        "duration" : 1,
+        "number" : 0,
+        "__v" : 0
+    }
+ }   

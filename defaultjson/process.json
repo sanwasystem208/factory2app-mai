@@ -1,0 +1,178 @@
+{
+    "basicprocess":[
+        {
+          "_id": "",  
+          "processno": 1, 
+          "processname": "卓上DIP",
+          "sortno": 1,
+          "modelid" : 0,
+          "workno" : 0,
+          "production" : 0,
+          "spec": [],
+          "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 2, 
+            "processname": "はんだ付け",
+            "sortno": 2,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 3, 
+            "processname": "APT",
+            "sortno": 3,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 4, 
+            "processname": "試験",
+            "sortno": 4,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 5, 
+            "processname": "コーティング",
+            "sortno": 5,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 6, 
+            "processname": "メルト・シリコン",
+            "sortno": 6,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 7, 
+            "processname": "組立",
+            "sortno": 7,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 8, 
+            "processname": "ラベル貼り",
+            "sortno": 8,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false 
+        },
+        {
+            "_id": "",  
+            "processno": 9, 
+            "processname": "分割",
+            "sortno": 9,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false 
+        },
+        {
+            "_id": "",  
+            "processno": 10, 
+            "processname": "完成目視",
+            "sortno": 10,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 11, 
+            "processname": "その他",
+            "sortno": 11,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },
+        {
+            "_id": "",  
+            "processno": 12, 
+            "processname": "出荷検査",
+            "sortno": 12,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0,
+            "spec": [],
+            "use" : false
+        },   
+        {
+            "_id": "",  
+            "processno": 13, 
+            "processname": "梱包",
+            "sortno": 13,
+            "modelid" : 0,
+            "workno" : 0,
+            "production" : 0, 
+            "spec": [],
+            "use" : false
+        }], 
+    "spec" : [ 
+        {
+            "id" : 1,
+            "min" : 0,
+            "max" : 10,
+            "cycletime" : 100,
+            "ets" : 0,
+            "price" : 0,
+            "worker" : 1,
+            "setting" : 600
+        }, 
+        {
+            "id" : 2,
+            "min" : 11,
+            "max" : 100,
+            "cycletime" : 100,
+            "ets" : 0,
+            "price" : 0,
+            "worker" : 1,
+            "setting" : 600
+        }, 
+        {
+            "id" : 3,
+            "min" : 101,
+            "max" : 99999,
+            "cycletime" : 100,
+            "ets" : 0,
+            "price" : 0,
+            "worker" : 1,
+            "setting" : 600
+        }
+    ]
+}
