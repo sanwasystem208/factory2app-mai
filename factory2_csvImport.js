@@ -215,7 +215,8 @@ function setdata(logs) {//CSVデータを受け取って関数実行
                   destination: logs[i].destination,
                   endplan: false,
                   disable: false,
-                  makeinstruct: false
+                  makeinstruct: false,
+                  makeinstruct2: false
                 }
 
                 var ml = new csvdata(oc);

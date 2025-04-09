@@ -119,6 +119,7 @@ var CsvDataSchema = new mongoose.Schema(
     endplan:    {type: Boolean, default: false },
     disable:    {type: Boolean, default: false },
     makeinstruct: {type: Boolean, default: false },  
+    makeinstruct2: {type: Boolean, default: false },  
     checkflg:   {type: Boolean, default: false },   
   }
 );

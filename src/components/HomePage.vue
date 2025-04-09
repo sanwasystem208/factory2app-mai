@@ -27,7 +27,7 @@
 }
 .video {
   width: 100%;
-  height: 94vh;
+  height: 93vh;
   object-fit: cover;
 }
 .absolute {

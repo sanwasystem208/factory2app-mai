@@ -27,8 +27,7 @@
               <b-form-select
                 class="m-1"
                 v-model="order.modelid"
-                :options="modellist"
-              >
+                :options="modellist">
               </b-form-select>
             </b-col>
         </b-row>
@@ -92,6 +91,15 @@
           </b-col>
           <b-col xl="6">
             <b-form-checkbox v-model="order.makeinstruct" name="check-button" class="mt-1" switch size="lg">
+            </b-form-checkbox>
+          </b-col>
+        </b-row>
+        <b-row>
+          <b-col xl="6">
+              <label class="mt-1">テーピング指示書発行</label>
+          </b-col>
+          <b-col xl="6">
+            <b-form-checkbox v-model="order.makeinstruct2" name="check-button" class="mt-1" switch size="lg" @change="handleChange">
             </b-form-checkbox>
           </b-col>
         </b-row>
@@ -200,7 +208,7 @@ import date_func from '../../api/date_func'
     },
     mounted() { 
       this.date = this.items.date.replace(/\//g, "-")
-      this.order = this.items;
+      this.order = JSON.parse(JSON.stringify(this.items));
       this.records = this.items.checklist;
     },
     computed: {
@@ -278,6 +286,11 @@ import date_func from '../../api/date_func'
           },
         }
         return ret;
+      },
+      handleChange() {
+        if(this.order.makeinstruct === false && this.order.makeinstruct2 === true) {
+          this.order.makeinstruct2 = false
+        }
       },
     }
   } 

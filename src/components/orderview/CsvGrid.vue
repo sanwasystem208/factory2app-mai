@@ -287,6 +287,9 @@ export default {
       if (rec.makeinstruct) {
         ret = { bgColor: "yellow", color: "#000", textAlign: "left"};
       }
+      if (rec.makeinstruct && rec.makeinstruct2) {
+        ret = { bgColor: "pink", color: "#000", textAlign: "left"};
+      }
       return ret
     },
     column_num(rec) {

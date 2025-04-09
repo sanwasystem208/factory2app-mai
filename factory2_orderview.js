@@ -288,6 +288,19 @@ server.post('/setorderdata', function (req, res) {
 
 });
 
+server.post('/disabledata', function (req, res) {
+  console.log("disabledata:"+JSON.stringify(req.body));
+  disabledata(req.body)
+    .then(onSenddata, onRejected);
+  function onSenddata(data) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.send(data);
+  }
+  function onRejected(err) {
+    res.send(err);
+  }
+});
+
 server.post('/setmakeinstruct', function (req, res) {
 
   console.log("setmakeinstruct:"+JSON.stringify(req.body));
@@ -344,6 +357,7 @@ server.post('/getcheckflgdata', function (req, res) {
   console.log("getcheckflgdata:"+JSON.stringify(req.body));
 
   getcheckflgdata(req.body)
+    .then(getorderids)
     .then(onSenddata, onRejected);
 
   function onSenddata(data) {
@@ -440,6 +454,7 @@ function getorderlist2(data) {
                         _price: "$price",
                         _destination: "$destination",
                         _makeinstruct: "$makeinstruct",
+                        _makeinstruct2: "$makeinstruct2",
                         _disable: "$disable",
                         _endplan: "$endplan"
       }}},
@@ -451,6 +466,7 @@ function getorderlist2(data) {
                    "price": "$_id._price",
                    "destination": "$_id._destination",
                    "makeinstruct": "$_id._makeinstruct",
+                   "makeinstruct2": "$_id._makeinstruct2",
                    "disable": "$_id._disable", 
                    "endplan": "$_id._endplan",                        
                    "checkqty": "0",
@@ -560,6 +576,37 @@ function getmodellist(data) {
           }   
     });
    });       
+}
+
+function disabledata(data) {
+  return new Promise(function (res, rej) {
+    var value = []
+    var en = data.orderid.length - 1;
+    function loop(i) {
+      return new Promise(function (resolve, reject) {
+        console.log("data.orderid[i]",data.orderid[i])
+        if (data.orderid.length > 0) {
+          csvdata.updateOne({ _id: data.orderid[i] }, { $set: { endplan: true }}, { upsert: false }, function (err, result) {
+            if (err) {
+              rej(console.log('update! ' + err));
+            }
+            value.push(result)
+            resolve(i + 1)
+          });
+        } else {
+          resolve(i + 1);
+        }
+      })
+      .then(function (count) {
+        if (count > en) {
+          res(value);
+        } else {
+          loop(count);
+        }
+      });
+    }
+    loop(0);
+  })
 }
 
 function setorderdata(data) {
@@ -781,11 +828,11 @@ function setcheckreport2(data) {
     loop(0);
   })
 }
-
+/*
 function setmakeinstruct(data) {
   return new Promise(function (res, rej) {
     csvdata.findOneAndUpdate({ _id: data.orderid },
-      { $set : { makeinstruct: true } },{ new: true} ,function(err,result){
+      { $set : { makeinstruct: true ,makeinstruct2: true} },{ new: true} ,function(err,result){
     // マッチしたドキュメントが docs[i].doc で取れる
       if (err) {
           console.log("error " + err);
@@ -795,15 +842,21 @@ function setmakeinstruct(data) {
         res(data);
       }
     });
-  /*  csvdata.updateOne({ _id: data.orderid }, 
-      { $set: { makeinstruct: true } }, { upsert: false }
-      , function (err, result) {
-        if (err) {
-          rej(console.log('update! ' + err));
-        } else {
-        }
-        res(result);
-    });*/
+  })
+}*/
+function setmakeinstruct(data) {
+  return new Promise(function (res, rej) {
+    csvdata.findOneAndUpdate({ _id: data.orderid, makeinstruct: true },
+      { $set : { makeinstruct2: true} },{ new: true} ,function(err,result){
+    // マッチしたドキュメントが docs[i].doc で取れる
+      if (err) {
+          console.log("error " + err);
+      } else {
+      //  console.log("getneworder3:"+ JSON.stringify(result));
+        data.newValue = result;
+        res(data);
+      }
+    });
   })
 }
 
@@ -825,7 +878,7 @@ function setcheckflgreset(data) {
 function setcheckflg(data) {
   return new Promise(function (res, rej) {
     csvdata.findOneAndUpdate({ _id: data.orderid },
-      { $set : { checkflg: data.checkflg } },{ new: true} ,function(err,result){
+      { $set : { checkflg: data.checkflg, makeinstruct: true } },{ new: true } ,function(err,result){
     // マッチしたドキュメントが docs[i].doc で取れる
       if (err) {
           console.log("error " + err);
@@ -849,6 +902,7 @@ function getcheckflgdata(data) {
       }},
       { $project: {"modelid": "$_id._modelid",
                    "modelname": "$_id._modelname", 
+                   "orderids": "",
                    "sum": "$_sum", 
                   }}
       ],
@@ -864,28 +918,70 @@ function getcheckflgdata(data) {
    });       
 }
 
+function getorderids(data) {
+  return new Promise(function (res, rej) {
+    var en = data.length - 1;
+    function loop(i) {
+      // 非同期処理なのでPromiseを利用
+      return new Promise(function (resolve, reject) {
+        if (data.length > 0) {
+          csvdata.aggregate([   
+            { $match: { modelid: data[i].modelid, checkflg: true }}, 
+            { $group: { _id: { _id: "$_id" }}},
+            { $project: { _id: "$_id._id" }}
+          ],
+          function(err, docs) {   
+            if(err) {
+                console.log('err' + err);
+                rej(console.log('getholiday! '+err)); 
+                throw err;
+            }
+            docs.forEach((item, index) => {
+              data[i].orderids += item._id + " "
+            });
+            console.log("getorderids:"+ JSON.stringify(docs));
+            resolve(i + 1)
+          });
+        } else {
+          resolve(i + 1);
+        }
+      })
+        .then(function (count) {
+          // ループを抜けるかどうかの判定
+          if (count > en) {
+            // 抜ける（外側のPromiseのresolve判定を実行）
+            res(data);
+          } else {
+            // 再帰的に実行
+            loop(count);
+          }
+        });
+    }
+    // 初回実行
+    loop(0);
+  })
+}
 
 function setcheckreport2_one(data) {
   return new Promise(function (resolve, reject) {
-    data.newValue.checkqty  = 0;   
-    data.newValue.monthcheckqty  = 0;
-    data.newValue.monthcheckprice  = 0;
+    data.newValue.checkqty = 0;   
+    data.newValue.monthcheckqty = 0;
+    data.newValue.monthcheckprice = 0;
     CheckReport.aggregate([   
       { $match: { order_no: parseInt(data.newValue._id), production: 1, lot_info: 1 }}, 
       { $group: { _id: { _daystr: "$daystr" },
-                  _sum: { $sum: "$lot_count" }
-      },
+                  _sum: { $sum: "$lot_count" } },
       },
       { $project: { daystr: "$_id._daystr",
-                    qty: "$_sum"}
+                    qty: "$_sum" }
       },
       { $sort: { daystr: 1 }}
     ],
       function(err, docs) {   
       if(err) {
-          console.log('err' + err);
-          rej(console.log('getholiday! '+err)); 
-          throw err;
+        console.log('err' + err);
+        rej(console.log('getholiday! '+err)); 
+        throw err;
       }
       // console.log("length:" + docs.length);
       data.newValue.checklist = docs;
@@ -915,6 +1011,7 @@ function getorderlist_one(data) {
                         _price: "$price",
                         _destination: "$destination",
                         _makeinstruct: "$makeinstruct",
+                        _makeinstruct2: "$makeinstruct2",
                         _disable: "$disable",
                         _endplan: "$endplan"
       }}},
@@ -926,6 +1023,7 @@ function getorderlist_one(data) {
                    "price": "$_id._price",
                    "destination": "$_id._destination",
                    "makeinstruct": "$_id._makeinstruct",
+                   "makeinstruct2": "$_id._makeinstruct2",
                    "disable": "$_id._disable", 
                    "endplan": "$_id._endplan",                        
                    "checkqty": "0",

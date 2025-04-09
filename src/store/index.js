@@ -24,6 +24,7 @@ const state = {
   homeserver:  "http://172.21.229.250:8105",
   reportserver:  "http://172.21.229.161:8005", 
   orderserver:  "http://172.21.229.161:8304", 
+  parttableserver:  "http://172.21.229.161:8309", 
   dryingserver:  "http://172.21.229.161:8006",
   mcplanserver:  "http://172.21.229.161:8306",  
   holidayserver:  "http://172.21.229.161:8307",  

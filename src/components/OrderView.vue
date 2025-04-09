@@ -16,23 +16,24 @@
             <b-form-input ref="filter-input" id="filter-input" type="text" v-model="filterstr" class="mt-1 mr-1 inputwidth" autocomplete="off" @keydown.enter="onListRefrash()"></b-form-input>
           </b-form>
         </b-col>
-        <b-col class="col-3 p-0">
+        <b-col class="col-4 p-0">
            <button type="button" class="btn float-left btn-danger btn-sm m-1" v-on:click="onListRefrash()">更新</button> 
-           <button type="button" class="btn float-left btn-primary btn-sm m-1" v-on:click="onShowDialog()">追加</button> 
+           <button type="button" class="btn float-left btn-primary btn-sm m-1" v-on:click="onShowDialog()">追加</button>  
+           <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="monthDisable()">非表示</button> 
+           <button type="button" class="btn float-left btn-warning btn-sm m-1" v-on:click="onSelectDisable()">選択非表示</button> 
            <button type="button" class="btn float-left btn-info btn-sm m-1" v-on:click="onShowDisable()">非表示の解除</button> 
-           <button type="button" class="btn float-left btn-warning btn-sm m-1" v-on:click="onSelectDisable()">まとめて非表示</button> 
            <button type="button" class="btn float-left btn-sm m-1" style="background: rgb(200, 200, 200);" v-on:click="showModal = true">消込処理</button> 
            <b-modal v-model="showModal" title="消込処理" @shown="focusInput">
               <b-form-group label="生産No">
                 <b-form-input ref="nameInput" v-model="code" @keydown.enter="keshikomi"></b-form-input>
               </b-form-group>
-            <template #modal-footer>
-              <b-button variant="secondary" @click="showModal = false">戻る</b-button>
-            </template>
-          </b-modal>
-           <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="checkevent()">送信</button> 
+              <template #modal-footer>
+                <b-button variant="secondary" @click="showModal = false">戻る</b-button>
+              </template>
+            </b-modal>
+           <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="checkevent()">送信</button>
         </b-col>
-        <b-col class="col-5 p-0">
+        <b-col class="col-4 p-0">
           <b-form inline>
             <h4 class="mr-sm-2 mt-2 mr-2" for="inline-form-custom-select-pref"><b-badge>総受注金額：</b-badge> {{ totalprice }}</h4>
             <h4 class="mr-sm-2 mt-2 mr-2" for="inline-form-custom-select-pref"><b-badge>総出荷金額：</b-badge> {{ checkprice }}</h4>
@@ -53,7 +54,7 @@
                 <csv-old-grid :items="records3"  :key="updatekey3" @click="onClickRow"></csv-old-grid>
             </b-tab>
           </b-tabs>
-          <modal name="orderadd" :width="800" :height="540">
+          <modal name="orderadd" :width="800" :height="570">
              <order-edit :items="editdata" @update="onUpdateOrder" @close="ordereditclose"></order-edit>
           </modal>
           <modal name="progress-view"       
@@ -81,6 +82,7 @@ import PriceGrid from './orderview/PriceGrid.vue'
 import { mapState } from 'vuex'
 
 import date_func from '../api/date_func'
+import { forEach } from 'mathjs';
 const { 
   getOffsetDate,
   getOffsetMonth2
@@ -182,23 +184,23 @@ export default {
       } 
     },
     onGetView: function() {
-        this.$modal.show("progress-view");
-        this.records = [];
-        this.updatekey += 1;
-        var url = "/getorderlist3";
-        var senddata = {
-            params: {
-            start: this.start,
-            last: this.last,
-            filterstr: this.filterstr,
-           // month: val.month.replace("-","/"),
-            retdata: null
-          } 
-        }    
-        let promise = axios.get( this.orderserver + url, senddata)  
-        return promise.then(this.onOrder).catch(error => {
-        console.log("error " + error) 
-        })  
+      this.$modal.show("progress-view");
+      this.records = [];
+      this.updatekey += 1;
+      var url = "/getorderlist3";
+      var senddata = {
+          params: {
+          start: this.start,
+          last: this.last,
+          filterstr: this.filterstr,
+          // month: val.month.replace("-","/"),
+          retdata: null
+        } 
+      }    
+      let promise = axios.get( this.orderserver + url, senddata)  
+      return promise.then(this.onOrder).catch(error => {
+      console.log("error " + error) 
+      })  
     }, 
     onOrder: function(data) {
        this.$modal.hide("progress-view");
@@ -392,11 +394,28 @@ export default {
             retdata: null
           } 
         }    
-        let promise = axios.get( this.orderserver + url, senddata)  
+        let promise = axios.get(this.orderserver + url, senddata)  
         return promise.then(this.onOrder).catch(error => {
         console.log("error " + error) 
         })  
     }, 
+    monthDisable() {
+      var list = []
+      this.records.forEach((item, index) => {
+        if(item.qty === item.checkqty || item.qty < item.checkqty) {
+          list.push(item._id)
+        }
+      })
+      var url = "/disabledata";
+      var data = { orderid: list }
+      let promise = axios.post(this.orderserver + url, data) //工数をデータベースに登録
+      return promise.then((result) => {
+        this.setupdaterow(result.data.newValue);
+        console.log("更新", result.data.newValue)
+      }).catch(error => {
+        console.log('実行はキャンセルされました');
+      });
+    },
     onSelectDisable: function(val) {
         // this.month = val.month;
       var self = this;
@@ -439,10 +458,14 @@ export default {
       var url = "/setmakeinstruct";
       let promise = axios.post(this.orderserver + url, data) //工数をデータベースに登録
       return promise.then((result) => {
-        this.setupdaterow(result.data.newValue);
-        this.code = ""
-        this.showModal = false
-        console.log("更新", result.data.newValue)
+        if(result.data.newValue.makeinstruct === false) {
+          alert("No.1を発行していません。")
+        } else {
+          this.setupdaterow(result.data.newValue);
+          this.code = ""
+          this.showModal = false
+          console.log("更新", result.data.newValue)
+        }
       }).catch(error => {
         console.log('実行はキャンセルされました');
       });
@@ -452,22 +475,27 @@ export default {
       let promise = axios.post(this.orderserver + url) //チェックフラグをfalseにリセット
       return promise.then((result) => {
         var self = this;
+        //チェックが入ったデータを抽出
         var result = this.records.filter(function(value) {
           return value.check === true;
         })
         result.forEach(function(item) {
-          var data = { orderid: item._id, 
-                       checkflg: item.check,
-                       start: self.start,
-                       last: self.last
-                      }
-          var url = "/setcheckflg";
-          let promise = axios.post(self.orderserver + url, data) //チェックフラグを更新
-          return promise.then((result) => {
-            self.setupdaterow(result.data.newValue);
-          }).catch(error => {
-            console.log('更新エラー');
-          });
+          if(item.makeinstruct === true || item.makeinstruct2 === true) {
+            alert("既に印刷済のデータがあります。")
+          } else {
+            var data = { orderid: item._id, 
+                          checkflg: item.check,
+                          start: self.start,
+                          last: self.last
+                        }
+            var url = "/setcheckflg";
+            let promise = axios.post(self.orderserver + url, data) //チェックフラグを更新
+            return promise.then((result) => {
+              self.setupdaterow(result.data.newValue);
+            }).catch(error => {
+              console.log('更新エラー');
+            });
+          }
         })
       }).catch(error => {
         console.log('リセットエラー');
