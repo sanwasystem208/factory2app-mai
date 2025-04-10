@@ -22,8 +22,8 @@
            <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="monthDisable()">非表示</button> 
            <button type="button" class="btn float-left btn-warning btn-sm m-1" v-on:click="onSelectDisable()">選択非表示</button> 
            <button type="button" class="btn float-left btn-info btn-sm m-1" v-on:click="onShowDisable()">非表示の解除</button> 
-           <button type="button" class="btn float-left btn-sm m-1" style="background: rgb(200, 200, 200);" v-on:click="showModal = true">消込処理</button> 
-           <b-modal v-model="showModal" title="消込処理" @shown="focusInput">
+           <button type="button" class="btn float-left btn-sm m-1" style="background: rgb(200, 200, 200);" v-on:click="showModal = true">テーピング</button> 
+           <b-modal v-model="showModal" title="テーピング" @shown="focusInput">
               <b-form-group label="生産No">
                 <b-form-input ref="nameInput" v-model="code" @keydown.enter="keshikomi"></b-form-input>
               </b-form-group>
@@ -31,7 +31,7 @@
                 <b-button variant="secondary" @click="showModal = false">戻る</b-button>
               </template>
             </b-modal>
-           <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="checkevent()">送信</button>
+           <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="checkevent()">No.1</button>
         </b-col>
         <b-col class="col-4 p-0">
           <b-form inline>
