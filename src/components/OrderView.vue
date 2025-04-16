@@ -19,7 +19,7 @@
         <b-col class="col-4 p-0">
            <button type="button" class="btn float-left btn-danger btn-sm m-1" v-on:click="onListRefrash()">更新</button> 
            <button type="button" class="btn float-left btn-primary btn-sm m-1" v-on:click="onShowDialog()">追加</button>  
-           <button type="button" class="btn float-left btn-light btn-sm m-1" v-on:click="onCheckRefrash()">チェック解除</button> 
+           <button type="button" class="btn float-left btn-sm m-1" style="background-color: #80DEEA;" v-on:click="onCheckRefrash()">チェック解除</button> 
            <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="monthDisable()">非表示</button> 
            <button type="button" class="btn float-left btn-warning btn-sm m-1" v-on:click="onSelectDisable()">選択非表示</button> 
            <button type="button" class="btn float-left btn-info btn-sm m-1" v-on:click="onShowDisable()">非表示の解除</button> 
@@ -101,7 +101,7 @@ export default {
   data() {
     return {
       currenttab: 1,
-      orderlist:[],
+      orderlist: [],
       records: [],
       records2: [], 
       records3: [],   
@@ -163,21 +163,23 @@ export default {
   methods: {
     onCheckSet: function() {
       var self = this;
-      for (var i in this.records){
-        var tmp = self.checklist.filter( function( value ) {
+      for(var i in this.records) {
+        var tmp = self.checklist.filter(function(value) {
           return value === self.records[i]._id;
         })
-        if (tmp.length > 0) {
+        if(tmp.length > 0) {
           self.records[i].check = true;
          // self.records.splice(i, 1, tmp[0]);
         }
       }
     },
     onCheckSave: function(e) {
-      this.checklist = [];
-      for (var i in this.records){
-        if (this.records[i].check) {
+      for(var i in this.records) {
+        if(this.records[i].check) {
           this.checklist.push(this.records[i]._id)
+        } else {
+          var index = this.checklist.indexOf(this.records[i]._id);
+          this.checklist.splice(index, 1);
         }
       }
       console.log(this.checklist)
