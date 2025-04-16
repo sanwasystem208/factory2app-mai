@@ -19,6 +19,7 @@
         <b-col class="col-4 p-0">
            <button type="button" class="btn float-left btn-danger btn-sm m-1" v-on:click="onListRefrash()">更新</button> 
            <button type="button" class="btn float-left btn-primary btn-sm m-1" v-on:click="onShowDialog()">追加</button>  
+           <button type="button" class="btn float-left btn-light btn-sm m-1" v-on:click="onCheckRefrash()">チェック解除</button> 
            <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="monthDisable()">非表示</button> 
            <button type="button" class="btn float-left btn-warning btn-sm m-1" v-on:click="onSelectDisable()">選択非表示</button> 
            <button type="button" class="btn float-left btn-info btn-sm m-1" v-on:click="onShowDisable()">非表示の解除</button> 
@@ -45,13 +46,13 @@
         <b-col class="col-12 p-0">
           <b-tabs content-class="mt-3">
             <b-tab title="受注一覧" active @click="onTabClick(1)">
-              <csv-grid ref="OrderCsvGrid" :items="records" :key="updatekey" @click="onClickRow"></csv-grid>
+              <csv-grid ref="OrderCsvGrid" :items="records" :key="updatekey" @click="onClickRow" @check="onCheckSave"></csv-grid>
             </b-tab>
             <b-tab title="売上実績"  @click="onTabClick(2)">
-                <price-grid :items="records2"  :key="updatekey2"></price-grid>
+                <price-grid :items="records2" :key="updatekey2"></price-grid>
             </b-tab>
             <b-tab title="非表示一覧"  @click="onTabClick(3)">
-                <csv-old-grid :items="records3"  :key="updatekey3" @click="onClickRow"></csv-old-grid>
+                <csv-old-grid :items="records3" :key="updatekey3" @click="onClickRow"></csv-old-grid>
             </b-tab>
           </b-tabs>
           <modal name="orderadd" :width="800" :height="570">
@@ -59,8 +60,7 @@
           </modal>
           <modal name="progress-view"       
             :width="350"
-            :height="100"
-            >
+            :height="100">
             <progress-view ref="progressview"></progress-view>
           </modal>
         </b-col>
@@ -104,7 +104,8 @@ export default {
       orderlist:[],
       records: [],
       records2: [], 
-      records3: [],    
+      records3: [],   
+      checklist: [], 
       updatekey: 0,
       updatekey2: 0, 
       updatekey3: 0,      
@@ -160,6 +161,31 @@ export default {
   //  this.onGetView();
   } ,
   methods: {
+    onCheckSet: function() {
+      var self = this;
+      for (var i in this.records){
+        var tmp = self.checklist.filter( function( value ) {
+          return value === self.records[i]._id;
+        })
+        if (tmp.length > 0) {
+          self.records[i].check = true;
+         // self.records.splice(i, 1, tmp[0]);
+        }
+      }
+    },
+    onCheckSave: function(e) {
+      this.checklist = [];
+      for (var i in this.records){
+        if (this.records[i].check) {
+          this.checklist.push(this.records[i]._id)
+        }
+      }
+      console.log(this.checklist)
+    },
+    onCheckRefrash() {
+      this.checklist = [];
+      this.onGetView()
+    },
     onTabClick(flg){
        this.currenttab = flg;
        if (flg==1) {
@@ -205,6 +231,7 @@ export default {
     onOrder: function(data) {
        this.$modal.hide("progress-view");
        this.records = data.data.retdata;   
+       this.onCheckSet();
     },
     onGetView2: function() {
         this.$modal.show("progress-view");
@@ -458,13 +485,13 @@ export default {
       var url = "/setmakeinstruct";
       let promise = axios.post(this.orderserver + url, data) //工数をデータベースに登録
       return promise.then((result) => {
-        if(result.data.newValue.makeinstruct === false) {
-          alert("No.1を発行していません。")
-        } else {
+        if (result.data.newValue !=null) {
           this.setupdaterow(result.data.newValue);
           this.code = ""
           this.showModal = false
           console.log("更新", result.data.newValue)
+        } else {
+          alert("No.1を発行していません。")
         }
       }).catch(error => {
         console.log('実行はキャンセルされました');

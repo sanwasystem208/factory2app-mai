@@ -827,8 +827,7 @@ function setcheckreport2(data) {
     // 初回実行
     loop(0);
   })
-}
-/*
+}/*//オーダー手動消し込み
 function setmakeinstruct(data) {
   return new Promise(function (res, rej) {
     csvdata.findOneAndUpdate({ _id: data.orderid },
@@ -847,15 +846,14 @@ function setmakeinstruct(data) {
 function setmakeinstruct(data) {
   return new Promise(function (res, rej) {
     csvdata.findOneAndUpdate({ _id: data.orderid, makeinstruct: true },
-      { $set : { makeinstruct2: true} },{ new: true} ,function(err,result){
+      { $set : { makeinstruct2: true} },{ new: true } ,function(err,result){
     // マッチしたドキュメントが docs[i].doc で取れる
       if (err) {
           console.log("error " + err);
       } else {
-      //  console.log("getneworder3:"+ JSON.stringify(result));
         data.newValue = result;
         res(data);
-      }
+      }  
     });
   })
 }
