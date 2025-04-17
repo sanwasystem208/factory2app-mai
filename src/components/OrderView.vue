@@ -64,7 +64,7 @@
                 <csv-old-grid :items="records3" :key="updatekey3" @click="onClickRow"></csv-old-grid>
             </b-tab>
           </b-tabs>
-          <modal name="orderadd" :width="800" :height="570">
+          <modal name="orderadd" :width="800" :height="600">
              <order-edit :items="editdata" @update="onUpdateOrder" @close="ordereditclose"></order-edit>
           </modal>
           <modal name="progress-view"       
