@@ -104,6 +104,15 @@
           </b-col>
         </b-row>
         <b-row>
+          <b-col xl="6">
+              <label class="mt-1">AAA指示書発行</label>
+          </b-col>
+          <b-col xl="6">
+            <b-form-checkbox v-model="order.makeinstruct3" name="check-button" class="mt-1" switch size="lg">
+            </b-form-checkbox>
+          </b-col>
+        </b-row>
+        <b-row>
           <b-col xl="9">   
             <!--   <b-button type="button" variant="success" class="mt-3 ml-1 float-left" v-on:click="onnewpart" v-if="newpart">新規登録</b-button>
                 <b-button type="button" variant="primary" class="mt-3 ml-1 float-left" v-on:click="oneditpart" v-else>登録</b-button>

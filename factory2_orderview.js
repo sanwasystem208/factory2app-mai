@@ -302,21 +302,28 @@ server.post('/disabledata', function (req, res) {
 });
 
 server.post('/setmakeinstruct', function (req, res) {
-
   console.log("setmakeinstruct:"+JSON.stringify(req.body));
-
   setmakeinstruct(req.body)
     .then(onSenddata, onRejected);
-
   function onSenddata(data) {
     res.header('Access-Control-Allow-Origin', '*');
     res.send(data);
   }
-
   function onRejected(err) {
     res.send(err);
   }
-
+});
+server.post('/setmakeinstruct2', function (req, res) {
+  console.log("setmakeinstruct2:"+JSON.stringify(req.body));
+  setmakeinstruct2(req.body)
+    .then(onSenddata, onRejected);
+  function onSenddata(data) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.send(data);
+  }
+  function onRejected(err) {
+    res.send(err);
+  }
 });
 
 server.post('/setcheckflgreset', function (req, res) {
@@ -455,6 +462,7 @@ function getorderlist2(data) {
                         _destination: "$destination",
                         _makeinstruct: "$makeinstruct",
                         _makeinstruct2: "$makeinstruct2",
+                        _makeinstruct3: "$makeinstruct3",
                         _disable: "$disable",
                         _endplan: "$endplan"
       }}},
@@ -467,6 +475,7 @@ function getorderlist2(data) {
                    "destination": "$_id._destination",
                    "makeinstruct": "$_id._makeinstruct",
                    "makeinstruct2": "$_id._makeinstruct2",
+                   "makeinstruct3": "$_id._makeinstruct3",
                    "disable": "$_id._disable", 
                    "endplan": "$_id._endplan",                        
                    "checkqty": "0",
@@ -857,6 +866,20 @@ function setmakeinstruct(data) {
     });
   })
 }
+function setmakeinstruct2(data) {
+  return new Promise(function (res, rej) {
+    csvdata.findOneAndUpdate({ _id: data.orderid },
+      { $set : { makeinstruct3: true} },{ new: true } ,function(err,result){
+    // マッチしたドキュメントが docs[i].doc で取れる
+      if (err) {
+          console.log("error " + err);
+      } else {
+        data.newValue = result;
+        res(data);
+      }  
+    });
+  })
+}
 
 function setcheckflgreset(data) {
   return new Promise(function (res, rej) {
@@ -1010,6 +1033,7 @@ function getorderlist_one(data) {
                         _destination: "$destination",
                         _makeinstruct: "$makeinstruct",
                         _makeinstruct2: "$makeinstruct2",
+                        _makeinstruct3: "$makeinstruct3",
                         _disable: "$disable",
                         _endplan: "$endplan"
       }}},
@@ -1022,6 +1046,7 @@ function getorderlist_one(data) {
                    "destination": "$_id._destination",
                    "makeinstruct": "$_id._makeinstruct",
                    "makeinstruct2": "$_id._makeinstruct2",
+                   "makeinstruct3": "$_id._makeinstruct3",
                    "disable": "$_id._disable", 
                    "endplan": "$_id._endplan",                        
                    "checkqty": "0",

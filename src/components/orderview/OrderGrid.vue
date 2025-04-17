@@ -1,5 +1,5 @@
 <template>
-  <div ref="gridWrapper" class="grid-wrapper" style='width: 100%; height: 88vh; border: solid 1px #000; margin: 0px'></div>
+  <div ref="gridWrapper" class="grid-wrapper" style='width: 100%; height: 110vh; border: solid 1px #000; margin: 0px'></div>
 </template>
 <script>
 

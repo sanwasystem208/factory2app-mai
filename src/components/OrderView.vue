@@ -33,6 +33,15 @@
               </template>
             </b-modal>
            <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="checkevent()">No.1</button>
+           <button type="button" class="btn float-left btn-sm m-1" style="background: rgb(200, 170, 220);" v-on:click="showModal = true">AAA</button> 
+           <b-modal v-model="showModal" title="AAA" @shown="focusInput">
+              <b-form-group label="生産No">
+                <b-form-input ref="nameInput" v-model="code" @keydown.enter="keshikomi2"></b-form-input>
+              </b-form-group>
+              <template #modal-footer>
+                <b-button variant="secondary" @click="showModal = false">戻る</b-button>
+              </template>
+            </b-modal>
         </b-col>
         <b-col class="col-4 p-0">
           <b-form inline>
@@ -483,11 +492,28 @@ export default {
       this.$refs.nameInput.focus();
     },
     keshikomi() {
-      var data = { orderid: this.code.slice(-6) }
+      var data = { orderid: this.code.slice(-6) } //頭のゼロを省く
       var url = "/setmakeinstruct";
       let promise = axios.post(this.orderserver + url, data) //工数をデータベースに登録
       return promise.then((result) => {
         if (result.data.newValue !=null) {
+          this.setupdaterow(result.data.newValue);
+          this.code = ""
+          this.showModal = false
+          console.log("更新", result.data.newValue)
+        } else {
+          alert("No.1を発行していません。")
+        }
+      }).catch(error => {
+        console.log('実行はキャンセルされました');
+      });
+    },
+    keshikomi2() {
+      var data = { orderid: this.code.slice(-6) } //頭のゼロを省く
+      var url = "/setmakeinstruct2";
+      let promise = axios.post(this.orderserver + url, data) //工数をデータベースに登録
+      return promise.then((result) => {
+        if (result.data.newValue != null) {
           this.setupdaterow(result.data.newValue);
           this.code = ""
           this.showModal = false
