@@ -33,13 +33,13 @@
               </template>
             </b-modal>
            <button type="button" class="btn float-left btn-success btn-sm m-1" v-on:click="checkevent()">No.1</button>
-           <button type="button" class="btn float-left btn-sm m-1" style="background: rgb(200, 170, 220);" v-on:click="showModal = true">AAA</button> 
-           <b-modal v-model="showModal" title="AAA" @shown="focusInput">
+           <button type="button" class="btn float-left btn-sm m-1" style="background: rgb(200, 170, 220);" v-on:click="showModal2 = true">TR・PID</button> 
+           <b-modal v-model="showModal2" title="TR・PID" @shown="focusInput">
               <b-form-group label="生産No">
                 <b-form-input ref="nameInput" v-model="code" @keydown.enter="keshikomi2"></b-form-input>
               </b-form-group>
               <template #modal-footer>
-                <b-button variant="secondary" @click="showModal = false">戻る</b-button>
+                <b-button variant="secondary" @click="showModal2 = false">戻る</b-button>
               </template>
             </b-modal>
         </b-col>
@@ -122,10 +122,11 @@ export default {
       month: null,
       filterstr: "",
       editdata: null,
-      start: getOffsetMonth2(new Date(),-1, 28),
-      last: getOffsetMonth2(new Date(),0, 28),
+      start: getOffsetMonth2(new Date(), -1, 28),
+      last: getOffsetMonth2(new Date(), 0, 28),
       showModal: false,
-      name: ''
+      showModal2: false,
+      name: ""
     }
   },
   computed: {
@@ -539,10 +540,9 @@ export default {
             alert("既に印刷済のデータがあります。")
           } else {
             var data = { orderid: item._id, 
-                          checkflg: item.check,
-                          start: self.start,
-                          last: self.last
-                        }
+                         checkflg: item.check,
+                         start: self.start,
+                         last: self.last }
             var url = "/setcheckflg";
             let promise = axios.post(self.orderserver + url, data) //チェックフラグを更新
             return promise.then((result) => {

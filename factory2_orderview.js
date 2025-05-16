@@ -398,9 +398,9 @@ function getorderlist(data) {
 
     var arr = [];
     if (data.filterstr != "" && data.filterstr != null) {
-       arr.push({ modelname: { $regex: data.filterstr, $options: "xi"}});
-       arr.push({ lot: { $regex: data.filterstr, $options: "xi"}});  
-       arr.push({ _id: { $regex: data.filterstr, $options: "xi"}});       
+       arr.push({ modelname: { $regex: data.filterstr, $options: "xi" }});
+       arr.push({ lot: { $regex: data.filterstr, $options: "xi" }});  
+       arr.push({ _id: { $regex: data.filterstr, $options: "xi" }});       
     } 
 
     if (arr.length > 0){
@@ -438,7 +438,7 @@ function getorderlist2(data) {
     var arr = [];
     if (data.filterstr != "" && data.filterstr != null) {
        arr.push({ modelname: { $regex: data.filterstr, $options: "xi"}});
-       arr.push({ lot: { $regex: data.filterstr, $options: "xi"}});  
+       arr.push({ modelid: { $regex: data.filterstr, $options: "xi"}});
        arr.push({ _id: { $regex: data.filterstr, $options: "xi"}});       
     } 
 
