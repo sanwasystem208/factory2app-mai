@@ -70,7 +70,7 @@
       </b-col>  
       <b-col xl="7">
         <div class="mt-3">
-          <div style="height: 20vh; border: solid 1px #545454;">
+          <div style="height: 45vh; border: solid 1px #545454;">
               <c-grid
               :data="records"
               :frozen-col-count="0"

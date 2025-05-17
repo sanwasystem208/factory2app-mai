@@ -132,9 +132,10 @@ const state = {
     { value: 0, label: "部品繰越"},
     { value: 1, label: "部品入庫"},
     { value: 2, label: "部品消費"},
-    { value: 3, label: "部品返却"},
+    { value: 3, label: "部品戻し"},
     { value: 4, label: "部品吸湿"},
     { value: 5, label: "部品棚卸"},  
+    { value: 6, label: "部品返却"},  
   ]
 
  /*

@@ -49,7 +49,7 @@
           </div> 
             <modal name="part-edit"       
             :width="1000"
-            :height="300"
+            :height="500"
             :draggable="true">
             <part-edit ref="editpart" class="m-0" :items="editpart" :printer="printer" @update="setpartdata" @delete="onDelete" @taskupdate="onTaskUpdate" @close="edithide"></part-edit> 
             </modal>

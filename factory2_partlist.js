@@ -2,12 +2,13 @@
    factory2_partlist            
    部品一覧のスクリプト                                     
    ver1.0 2024-06-30 初期立ち上げ 
-   ver2.0 2025-01-29 部品返却追加                                             
+   ver2.0 2025-01-29 部品返却追加    
+   ver2.1 2025-01-29 部品返却追加                                           
 //////////////////////////////////////////////////////////////////////////////*/
 
 var http_port = 8302;
 
-console.log("ver:2.0");
+console.log("ver:2.1");
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -58,8 +59,7 @@ var {
 var express = require('express');
 var server = express();
 var http = require('http').Server(server);
-
-  var bodyParser = require('body-parser')
+var bodyParser = require('body-parser')
   
   // app.use(express.json());
   server.use(bodyParser.json());
@@ -118,7 +118,6 @@ server.use(express.static(__dirname));
          res.send(err)
       })
   })
-
 
   server.post('/getpartlist2', function (req, res) {
 
@@ -301,6 +300,51 @@ server.use(express.static(__dirname));
     console.log("getlotinventlog_group:" + JSON.stringify(req.query))
 
     getlotinventlog_group(req.query)
+       .then((result) => {
+         res.header('Access-Control-Allow-Origin', '*')
+         res.send(result)
+      })
+       .catch((err) => {
+         console.log("error:" + JSON.stringify(err))
+         res.send(err)
+      })
+  })
+
+  server.post('/getinputlog', function (req, res) {
+    console.log("getinputlog:" + JSON.stringify(req.body))
+    getinputlog(req.body)
+       .then(getlotid_to_modelinfo)
+       .then(getInputGroup)
+       .then((result) => {
+         res.header('Access-Control-Allow-Origin', '*')
+         res.send(result)
+      })
+       .catch((err) => {
+         console.log("error:" + JSON.stringify(err))
+         res.send(err)
+      })
+  })
+
+  server.post('/getinputlog2', function (req, res) {
+    console.log("getinputlog2:" + JSON.stringify(req.body))
+    getinputlog2(req.body)
+       .then(getlotid_to_modelinfo)
+       .then(getInputGroup)
+       .then((result) => {
+         res.header('Access-Control-Allow-Origin', '*')
+         res.send(result)
+      })
+       .catch((err) => {
+         console.log("error:" + JSON.stringify(err))
+         res.send(err)
+      })
+  })
+
+  server.post('/getrevercelog', function (req, res) {
+    console.log("getrevercelog:" + JSON.stringify(req.body))
+    getrevercelog(req.body)
+       .then(getlotid_to_modelinfo)
+       .then(getInputGroup)
        .then((result) => {
          res.header('Access-Control-Allow-Origin', '*')
          res.send(result)
@@ -1009,7 +1053,8 @@ async function getlotid_to_modelinfo(data) {
       function loop(i) {
         // 非同期処理なのでPromiseを利用
         return new Promise(function(resolve, reject) {
-            console.log("log-1:" + data[i].ornerid)
+          if (data.length > 0) {
+
             lotlist.find( { _id: data[i].ornerid }, function(err, docs) {
               if(err) {
               // console.log('func_workid_update Error!');
@@ -1025,6 +1070,9 @@ async function getlotid_to_modelinfo(data) {
                 console.log("log-2:" + JSON.stringify(data[i]))
                 resolve(i + 1); 
            });
+          } else {
+            resolve(i + 1);   
+          }  
       }).then(function(count) {
           // ループを抜けるかどうかの判定
           if (count > en) {
@@ -1134,6 +1182,95 @@ async function getlotlog_modelsave(data) {
   })
 }
 
+
+function getinputlog2(data) {
+  return new Promise(function (resolve, reject) {
+    var obj = { daystr: { $gte: data.startday, $lte: data.lastday }, mode: 1 };   
+    lotlog.aggregate([
+      { $match: obj },
+      { $group: {"_id": { "_daystr": "$daystr", 
+                          "_ornerid": "$ornerid",
+                          "_modelid": "$ornerid"
+                        },
+                        _qty: { $sum: "$qty"}
+                      }},
+      { $project: {"daystr": "$_id._daystr", 
+                   "ornerid": "$_id._ornerid", 
+                   "modenid": "0",
+                   "modelname": "",
+                   "qty": "$_qty"
+                  } }
+    ],
+      function (err, docs) {
+        if (err) {
+          reject(console.log('getworklog! ' + err));
+        }
+        console.log("length 1:" + docs.length)
+        resolve(docs);
+      });
+  })
+}
+
+function getinputlog(data) {
+  return new Promise(function (resolve, reject) {
+    var obj = { daystr: data.startday , mode: 1 };   
+    lotlog.aggregate([
+      { $match: obj },
+      { $group: {"_id": { "_daystr": "$daystr", 
+                          "_ornerid": "$ornerid",
+                          "_modelid": "$ornerid"
+                        },
+                        _qty: { $sum: "$qty"}
+                      }},
+      { $project: {"daystr": "$_id._daystr", 
+                   "ornerid": "$_id._ornerid", 
+                   "modenid": "0",
+                   "modelname": "",
+                   "qty": "$_qty"
+                  } }
+    ],
+      function (err, docs) {
+        if (err) {
+          reject(console.log('getworklog! ' + err));
+        }
+        console.log("length 1:" + docs.length)
+        resolve(docs);
+      });
+  })
+}
+
+
+function getrevercelog(data) {
+  return new Promise(function (resolve, reject) {
+    var obj = { daystr: { $gte: data.startday, $lte: data.lastday }, mode: 6 };   
+    lotlog.aggregate([
+      { $match: obj },
+      { $group: {"_id": { "_daystr": "$daystr", 
+                          "_ornerid": "$ornerid",
+                          "_modelid": "$ornerid"
+                        },
+                        _qty: { $sum: "$qty"}
+                      }},
+      { $project: {"daystr": "$_id._daystr", 
+                   "ornerid": "$_id._ornerid", 
+                   "modenid": "0",
+                   "modelname": "",
+                   "qty": "$_qty"
+                  } }
+    ],
+      function (err, docs) {
+        if (err) {
+          reject(console.log('getworklog! ' + err));
+        }
+        console.log("length 1:" + docs.length)
+        docs.forEach((item, index) => {
+          item.qty = item.qty * -1;
+        }); 
+        resolve(docs);
+      });
+  })
+}
+
 function modelsort( a, b ){
   var r = 0;
   if( a < b ){ r = -1; }
@@ -1141,3 +1278,27 @@ function modelsort( a, b ){
 
   return r;
 }
+
+async function getInputGroup(arr) {
+    return  new Promise(function(res, rej) {
+    var group = arr.reduce(function (result, current) {
+      var element = result.find(function (p) {
+        return p.modelid === current.modelid
+      });
+      if (element) {
+          element.modelid = current.modelid,
+          element.modelname = current.modelname,
+          element.qty += current.qty
+      } else {
+        result.push({
+          modelid: current.modelid,
+          modelname: current.modelname,
+          qty: current.qty,
+        });
+      }
+      return result;
+    }, []);
+    console.log("result:" + JSON.stringify(group))
+    res(group)
+  });
+}      
