@@ -47,10 +47,26 @@
             </b-row>
             <b-row>
               <b-col xl="3">
-                  <label class="m-1" for="inline-form-custom-select-pref">受入数</label>
+                  <label class="m-1" for="inline-form-custom-select-pref">棚番地</label>
               </b-col>
               <b-col xl="9">
+                  <label class="m-1">{{ address }}</label>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col xl="4">
+                  <label class="mt-2 ml-1" for="inline-form-custom-select-pref">繰越数</label>
+              </b-col>
+              <b-col xl="8">
                   <b-form-input type="number" id="input-comment" v-model="partinfo.stock" required placeholder="" class="m-1" @change="oneditpart"></b-form-input>
+              </b-col>
+            </b-row>
+            <b-row>
+              <b-col xl="4">
+                  <label class="mt-2 ml-1" for="inline-form-custom-select-pref">最大ロット数</label>
+              </b-col>
+              <b-col xl="8">
+                  <b-form-input type="number" id="input-comment" v-model="maxqty" required placeholder="" class="m-1" @change="oneditmaxqty"></b-form-input>
               </b-col>
             </b-row>
             <b-row>
@@ -70,7 +86,7 @@
       </b-col>  
       <b-col xl="7">
         <div class="mt-3">
-          <div style="height: 45vh; border: solid 1px #545454;">
+          <div style="height: 43vh; border: solid 1px #545454;">
               <c-grid
               :data="records"
               :frozen-col-count="0"
@@ -108,7 +124,7 @@
               </c-grid-input-column>
               <c-grid-input-column
                 field="workername"
-                width= "20%"
+                width= "18%"
                 :column-style='column'
                 min-width="0"
                 sort="true"
@@ -162,6 +178,8 @@ import date_func from '../../api/date_func'
         records: [],
         userTheme: null,
         modeoptions: [],
+        address: null,
+        maxqty: 0,
         typelist: [
           { value: 0, text: "入出管理無し"},
           { value: 1, text: "入出管理あり"}
@@ -218,6 +236,8 @@ import date_func from '../../api/date_func'
       this.modeoptions = this.modelist;
       this.partinfo = this.items.info;
       this.records = this.items.datalist;
+      this.address = this.items.address;
+      this.maxqty = this.items.maxqty;     
     //  this.getdivision(1001); 
     },
     mounted() {
@@ -308,7 +328,8 @@ import date_func from '../../api/date_func'
                 _id: this.partinfo.ornerid,
                 mode: 1,
                 printer: this.printer,
-                flg: 0
+                flg: 0,
+                address: this.address, 
             }
             let promise = axios.post( this.partserver + "/printlabel", senddata)  
             return promise.then((result) => {
@@ -481,6 +502,15 @@ import date_func from '../../api/date_func'
                 }
               this.$store.dispatch('materiallist/http_request', senddata );
           }
+      },
+      oneditmaxqty: function() {
+        var self = this;
+        let promise = axios.get(this.partserver + '/setmaxqty?modelid='+this.partinfo.info.modelid+"&maxqty="+this.maxqty)  
+        return promise.then((result) => {
+            self.maxqty = result.data.maxqty;
+        }).catch(error => {
+            console.log("error " + error) 
+        }) 
       },
       oncolor_change: function(data) {
         var fontc = "#000000"

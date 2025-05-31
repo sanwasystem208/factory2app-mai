@@ -1,7 +1,7 @@
 <template>
     <div ref="gridWrapper" class="grid-wrapper" style='width: 100%; height: 80vh; border: solid 1px #000; margin: 0px'></div>
- </template>
- <script>
+</template>
+<script>
  
  import { cheetahGrid } from 'vue-cheetah-grid';
 
@@ -182,7 +182,7 @@
                         },
                       },    
                       ];
-         var crow2 = [{ field: (record) => { return "ロット:" },
+         var crow2 = [{ field: (record) => { return "番地:" + record.address },
                         width: 170, 
                         style(rec) {
                         //  vm.bgstyle.bgColor = vm.getcolor(rec.process);

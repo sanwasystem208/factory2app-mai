@@ -127,6 +127,7 @@ server.use(express.static(__dirname));
 
     getpartlist(data)
        .then(getpartlist_part)
+       .then(getpartlist_to_address)
        .then(refrashDaylist_m)
        .then(refrashDaylist2)
        .then((result) => {
@@ -144,6 +145,7 @@ server.use(express.static(__dirname));
     console.log(JSON.stringify(req.body))
 
     getpartinfo(req.body)
+      .then(getmodelinfo)
       .then(getlotlog)
       .then((result) => {
       //  console.log("send:" + JSON.stringify(result))
@@ -236,7 +238,7 @@ server.use(express.static(__dirname));
   server.post('/printlabel', function (req, res) {
     console.log("printlabel:" + JSON.stringify(req.body))
 
-    printlabel(req.body)
+    printlabel2(req.body)
        .then((result) => {
        //  console.log("send:" + JSON.stringify(result))
          res.header('Access-Control-Allow-Origin', '*')
@@ -346,6 +348,34 @@ server.use(express.static(__dirname));
        .then(getlotid_to_modelinfo)
        .then(getInputGroup)
        .then((result) => {
+         res.header('Access-Control-Allow-Origin', '*')
+         res.send(result)
+      })
+       .catch((err) => {
+         console.log("error:" + JSON.stringify(err))
+         res.send(err)
+      })
+  })
+
+  server.post('/setaddress', function (req, res) {
+    //console.log("setaddress:" + JSON.stringify(req.body))
+    setaddress(req.body)
+       .then((result) => {
+         res.header('Access-Control-Allow-Origin', '*')
+         res.send(result)
+      })
+       .catch((err) => {
+         console.log("error:" + JSON.stringify(err))
+         res.send(err)
+      })
+  })
+
+  server.get('/setmaxqty', function (req, res) {
+    console.log("setmaxqty:" + JSON.stringify(req.query))
+
+    setmaxqty(req.query)
+       .then((result) => {
+       //  console.log("send:" + JSON.stringify(result))
          res.header('Access-Control-Allow-Origin', '*')
          res.send(result)
       })
@@ -686,7 +716,7 @@ async function settotalexec_m(data, daylist) {
                     }
                     if (item.mode==3) {
                       daylist[i].use -= item.qty;
-                      total += item.qty;       
+                      total = item.qty;       
                     }
                     if (item.mode==5) {
                       invent = item.qty; 
@@ -704,7 +734,7 @@ async function settotalexec_m(data, daylist) {
                 }
                 daylist[i].total = total;
                 resolve(i + 1); 
-            });
+            }).sort({update_time: 1});
           }
       }).then(function(count) {
           // ループを抜けるかどうかの判定
@@ -767,6 +797,25 @@ function getpartinfo(data) {
         console.log("TEST:"+JSON.stringify(docs))
         if (docs.length > 0) {
           data.info = docs[0];
+        }
+        resolve(data);
+      }
+    });
+  });
+}
+
+function getmodelinfo(data) {  
+  return new Promise(function (resolve, reject) {
+    //console.log("getaddress:" + JSON.stringify(data));
+    modellist.find({ _id: data.info.info.modelid }, function (err, docs) {
+      if (err) {
+        console.log(err)
+        reject(err);
+      } else {
+       // console.log("address:"+JSON.stringify(docs))
+        if (docs.length > 0) {
+          data.address = docs[0].address;
+          data.maxqty = docs[0].maxqty;
         }
         resolve(data);
       }
@@ -966,6 +1015,97 @@ function printlabel(data) {
         str += esc + 'P01' + esc + 'L0101';
         str += esc + 'X22,' + data.qty;
 
+        str += esc + 'H0150' + esc + 'V0110' + esc + '2D30,L,03,0,0';
+        str += esc + 'DS2,' + data._id;
+        //'2D30,L,04,0,0' + esc + 'DS2,' + '3N2-' & zero5(data.reelno) + '-' + zero6(data.lotid));
+
+        str += esc + 'Q1';
+        str += esc + 'Z';
+
+        // 文字列を配列にしておく
+
+        client.write(str); 
+        client.destroy();
+      //  var no = parseInt(data.no);
+        data.msg = "SAVE!";    
+        data.flg = 1;
+        console.log("print:")
+      resolve(data);
+   //   client.close();
+    });
+
+    // クライアント側ソケットの'data'イベントハンドラーを定義します。
+    // dataはサーバーがこのソケットに送信した内容になります。
+    client.on('data', function (data) {
+    //  console.log('DATA: ' + data);
+      data.flg = 1;
+      // Close the client socket completely
+      //   client.destroy();
+    });
+    // クライアント側'close' イベントハンドラーを定義します
+    client.on('close', function (err) {
+      console.log('Connection closed' + err);
+      client.destroy();
+    });
+
+    // クライアント側'close' イベントハンドラーを定義します
+    client.on('error', function (err) {
+        console.log('error:' + err);
+        client.destroy();
+        data.msg = "プリンタに接続できませんでした"
+        data.flg = 0;
+        resolve(data);
+      });
+    } else {
+      resolve(data);     
+    }  
+  });
+}
+
+
+function printlabel2(data) {
+  return new Promise(function (resolve, reject) {
+    if (data.mode==1) {
+      console.log("printer:" + data.printer);
+      var HOST = data.printer;
+      var PORT = 1024;
+      var net = require('net');
+      var client = new net.Socket();
+      var esc = String.fromCharCode(27);
+      var str = "";
+      client.connect(PORT, HOST, function () {
+
+        str += esc + 'A';
+        str += esc + 'A1V00250H0370';       
+        str += esc + 'KC1';
+        str += esc + 'H0010' + esc + 'V0010'; 
+       // str += esc + "FW0202V0140H0400",
+        str += esc + 'H0010' + esc + 'V0030';
+        str += esc + 'P01' + esc + 'L0101';
+        //製品名
+        str += esc + 'X21,' + data.modelname.substring(0,23);
+        if (data.modelname.length > 22) {
+          str += esc + 'H0010' + esc + 'V0050';
+          str += esc + 'P01' + esc + 'L0101';
+          str += esc + 'X21,' + data.modelname.substring(23);
+        }
+        //ロット
+        str += esc + 'H0010' + esc + 'V0080';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X21,' + data.lot; 
+        //日付
+        str += esc + 'H0010' + esc + 'V0110';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X21,' + toDaystr();
+        //ロットID
+        str += esc + 'H0010' + esc + 'V0140';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X22,' + data.address; 
+        //数量
+        str += esc + 'H0010' + esc + 'V0180';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X22,' + data.qty;
+        //QRコード
         str += esc + 'H0150' + esc + 'V0110' + esc + '2D30,L,03,0,0';
         str += esc + 'DS2,' + data._id;
         //'2D30,L,04,0,0' + esc + 'DS2,' + '3N2-' & zero5(data.reelno) + '-' + zero6(data.lotid));
@@ -1301,4 +1441,78 @@ async function getInputGroup(arr) {
     console.log("result:" + JSON.stringify(group))
     res(group)
   });
-}      
+}  
+
+function setaddress(data) {
+  return new Promise(function (res, rej) {
+    modellist.updateOne({ _id: data.modelid }, 
+      { $set: { address: data.address } }, { upsert: false }
+      , function (err, result) {
+        if (err) {
+          rej(console.log('update! ' + err));
+        } else {
+        }
+        data.return = result.ok;
+        console.log("retrun:" + JSON.stringify(result))
+        res(data);
+    });
+  })
+}
+
+
+async function getpartlist_to_address(data) {
+  // ループ処理の完了を受け取るPromise
+  return  new Promise(function(res, rej) {
+      // ループ処理（再帰的に呼び出し）
+      var en = data.retdata2.length-1;
+      function loop(i) {
+        // 非同期処理なのでPromiseを利用
+        return new Promise(function(resolve, reject) {
+          if (data.retdata2.length > 0) {
+
+            modellist.find( { _id: data.retdata2[i].modelid }, function(err, docs) {
+              if(err) {
+              // console.log('func_workid_update Error!');
+              reject(console.log('getplanview2: '+err)); 
+              throw err;
+              } 
+                if (docs.length > 0) {
+                    console.log("address: " + docs[0].address);
+                    data.retdata2[i].address = docs[0].address;
+                } else {
+                    data.retdata2[i].address = "";
+                }
+                resolve(i + 1); 
+           });
+          } else {
+            resolve(i + 1);   
+          }  
+      }).then(function(count) {
+          // ループを抜けるかどうかの判定
+          if (count > en) {
+            // 抜ける（外側のPromiseのresolve判定を実行）
+              res(data);
+          } else {
+            // 再帰的に実行
+            loop(count);
+          }
+        });
+      }
+      // 初回実行
+      loop(0);
+  })
+}
+
+function setmaxqty(data) {
+  return new Promise(function (res, rej) {
+    modellist.updateOne({ _id: data.modelid }, 
+      { $set: { maxqty: data.maxqty }}, { upsert: false }
+      , function (err, result) {
+        if (err) {
+          rej(console.log('update! ' + err));
+        } else {
+        }
+        res(data);
+    });
+  })
+}

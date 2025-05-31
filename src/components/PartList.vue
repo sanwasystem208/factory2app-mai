@@ -234,6 +234,8 @@
         var senddata = {
            _id: e[0]._id,
            info: "",
+           address: "",
+           maxqty: 0,
            datalist: []
         }
         let promise = axios.post(self.partserver + '/getpartinfo',senddata)  

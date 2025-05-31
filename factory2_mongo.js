@@ -1,7 +1,10 @@
 /*///////////////////////////////////////////////////////////////////////////////
 var:1.0 2024-07-05 新規作成
 var:1.1 2024-08-21 csvdatas checkqty追加
+var:1.2 2025-05-30 modellistにaddress追加
 ///////////////////////////////////////////////////////////////////////////////*/
+
+console.log("ver: 1.2")
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -30,6 +33,8 @@ var ModelSchema = new mongoose.Schema(
     modelname:  { type: String },
     typename:   { type: String },
     pin:        { type: Number, min: 0, default: 0 },
+    address:    { type: String },  
+    maxqty:     { type: Number, min: 0, default: 0 },
   }
 );
 
