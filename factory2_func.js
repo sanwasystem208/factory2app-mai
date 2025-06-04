@@ -45,6 +45,20 @@ function make_datetime() {
   return  year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec; 
 }
 
+function offset_datetime(i) {
+    var date1 = new Date();
+    date1.setHours(date1.getHours() + i); 
+    // Date型を（YYYY/MM/DD）形式へ成型して返却
+    var year = date1.getFullYear(); // 年
+    var month = toDoubleDigits(date1.getMonth() + 1); // 月
+    var day = toDoubleDigits(date1.getDate()); // 日
+    var hour = toDoubleDigits(date1.getHours()); // 時
+    var min = toDoubleDigits(date1.getMinutes()); // 分
+    var sec = toDoubleDigits(date1.getSeconds()); // 秒 
+  
+  return  year + "-" + month + "-" + day + " " + hour + ":" + min + ":" + sec; 
+}
+
 function addDaystr(str) {
     var date1 = new Date(str);
   
@@ -255,7 +269,8 @@ function weekName(day) {
     setReadTime,
     weekNo,
     weekName,
-    getshortday
+    getshortday,
+    offset_datetime
   }
   
   

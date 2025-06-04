@@ -3,12 +3,13 @@
    部品一覧のスクリプト                                     
    ver1.0 2024-06-30 初期立ち上げ 
    ver2.0 2025-01-29 部品返却追加    
-   ver2.1 2025-01-29 部品返却追加                                           
+   ver2.1 2025-01-29 部品返却追加     
+   ver2.2 2025-06-02 棚番地機能の追加                                     
 //////////////////////////////////////////////////////////////////////////////*/
 
 var http_port = 8302;
 
-console.log("ver:2.1");
+console.log("ver:2.2");
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -123,7 +124,7 @@ server.use(express.static(__dirname));
 
     var data = req.body;
 
-    console.log("getpartlist2:" + JSON.stringify(data));
+   // console.log("getpartlist2:" + JSON.stringify(data));
 
     getpartlist(data)
        .then(getpartlist_part)
@@ -502,6 +503,8 @@ function getpartlist_part(data) {
         }
     }   
 
+    console.log("start: " + JSON.stringify(obj))
+
     lotstock.aggregate([
       { $match: obj },
       { $group: {"_id": { "_month": "$month", 
@@ -520,7 +523,7 @@ function getpartlist_part(data) {
         if (err) {
           reject(console.log('getworklog! ' + err));
         }
-      //  console.log("docs:" + JSON.stringify(docs));
+        console.log("docs all:" + JSON.stringify(docs));
         data.retdata2 = docs;
         resolve(data);
       });
@@ -548,7 +551,8 @@ async function refrashDaylist_m(data) {
   var daylist = data.daylist;
   for (const i in data.retdata) {
       var list = JSON.parse(JSON.stringify(daylist));
-     // console.log("refrashDaylist loop:" + daylist.length)
+
+      data.retdata[i] = await settotalexec_s(data.retdata[i], list);
       data.retdata[i].daylist = await settotalexec_m(data.retdata[i], list);
     //  var tmp = setlastqty(data.retdata[i])
   }
@@ -674,6 +678,28 @@ async function settotalexec(data, daylist) {
 }
 
 
+async function settotalexec_s(data, daylist) {
+  // ループ処理の完了を受け取るPromise
+  return  new Promise(function(res, rej) {
+      lotlog.find( { $and: [ {"ornerid": data.ornerid}, {"daystr": { $lt: daylist[0].daystr }}] }, function(err, docs) {
+        if(err) {
+        // console.log('func_workid_update Error!');
+        rej(console.log('settotalexec_s: '+err)); 
+        throw err;
+        } 
+          if (docs.length > 0) {
+            if (docs[0].mode==2) {
+                data.stock -= docs[0].qty
+            }
+            if (docs[0].mode==3) {
+                data.stock = docs[0].qty
+            }
+          }
+          res(data); 
+      }).sort({update_time: -1}).limit(1);
+  })
+}
+
 async function settotalexec_m(data, daylist) {
   // ループ処理の完了を受け取るPromise
   return  new Promise(function(res, rej) {
@@ -720,7 +746,7 @@ async function settotalexec_m(data, daylist) {
                     }
                     if (item.mode==5) {
                       invent = item.qty; 
-                      console.log("inventposition:" + i);
+                    //  console.log("inventposition:" + total + " " + invent);
                       currenttotal = total;   
                     }
                     if (item.mode==6) {
@@ -740,7 +766,6 @@ async function settotalexec_m(data, daylist) {
           // ループを抜けるかどうかの判定
           if (count > en) {
             // 抜ける（外側のPromiseのresolve判定を実行）
-            console.log("invent:" + currenttotal + " " + invent);
               daylist[daylist.length-2].total = invent;
               daylist[daylist.length-1].total = currenttotal-invent;
               res(daylist);
@@ -1076,37 +1101,42 @@ function printlabel2(data) {
       client.connect(PORT, HOST, function () {
 
         str += esc + 'A';
-        str += esc + 'A1V00250H0370';       
+        str += esc + 'A1V00250H0390';       
         str += esc + 'KC1';
-        str += esc + 'H0010' + esc + 'V0010'; 
+        str += esc + 'H0010' + esc + 'V0030'; 
        // str += esc + "FW0202V0140H0400",
-        str += esc + 'H0010' + esc + 'V0030';
+      //  str += esc + 'H0010' + esc + 'V0010';
         str += esc + 'P01' + esc + 'L0101';
         //製品名
         str += esc + 'X21,' + data.modelname.substring(0,23);
-        if (data.modelname.length > 22) {
+        if (data.modelname.length > 23) {
           str += esc + 'H0010' + esc + 'V0050';
           str += esc + 'P01' + esc + 'L0101';
-          str += esc + 'X21,' + data.modelname.substring(23);
+          str += esc + 'X21,' + data.modelname.substring(24);
         }
         //ロット
-        str += esc + 'H0010' + esc + 'V0080';
+       /* str += esc + 'H0010' + esc + 'V0080';
         str += esc + 'P01' + esc + 'L0101';
-        str += esc + 'X21,' + data.lot; 
+        str += esc + 'X21,' + data.lot; */
         //日付
-        str += esc + 'H0010' + esc + 'V0110';
+        str += esc + 'H0010' + esc + 'V0090';
         str += esc + 'P01' + esc + 'L0101';
-        str += esc + 'X21,' + toDaystr();
+        str += esc + 'X22,' + data._id + " " + data.address
+        //ID
+        str += esc + 'H0010' + esc + 'V0130';
+        str += esc + 'P01' + esc + 'L0102';
+        str += esc + 'X21,' + toDaystr()
         //ロットID
+        /*
         str += esc + 'H0010' + esc + 'V0140';
         str += esc + 'P01' + esc + 'L0101';
-        str += esc + 'X22,' + data.address; 
+        str += esc + 'X22,' + data.address; */
         //数量
-        str += esc + 'H0010' + esc + 'V0180';
+        str += esc + 'H0010' + esc + 'V0170';
         str += esc + 'P01' + esc + 'L0101';
         str += esc + 'X22,' + data.qty;
         //QRコード
-        str += esc + 'H0150' + esc + 'V0110' + esc + '2D30,L,03,0,0';
+        str += esc + 'H0170' + esc + 'V0130' + esc + '2D30,L,03,0,0';
         str += esc + 'DS2,' + data._id;
         //'2D30,L,04,0,0' + esc + 'DS2,' + '3N2-' & zero5(data.reelno) + '-' + zero6(data.lotid));
 

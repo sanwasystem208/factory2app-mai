@@ -3,10 +3,13 @@
    キーエンスハンディターミナルのスクリプト                                     
    ver1.0 2024-08-01 初期立ち上げ     
    ver1.1 2024-08-30 棚卸日を強制的に月末にする。
-   ver1.2 2025-01-29 部品返却を追加。                                          
+   ver1.2 2025-01-29 部品返却を追加。
+   ver1.3 2025-06-02 棚番号の追加と検収数の上限追加  
+   ver1.4 2025-06-03 棚卸の日を月最終日から棚卸当日に変更  
+   ver1.5 2025-06-03 lotlogにmonthの追加                                     
 //////////////////////////////////////////////////////////////////////////////*/
 
-console.log("ver 1.3")
+console.log("ver 1.5")
 var http_port = 8301;
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +53,8 @@ var {
   today_last,
   toDaystr,
   getStartDay,
-  getInventDay
+  getInventDay,
+  offset_datetime
 } = require("./factory2_func");
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +134,7 @@ server.use(express.static(__dirname));
       console.log("getpartinfo:" + JSON.stringify(req.body))
       getpartinfo(req.body)
        // .then(getlotlist)
-        .then(getmodelog)
+        .then(getmodelog1)
         .then((result) => {
         //  console.log("send:" + JSON.stringify(result))
           res.header('Access-Control-Allow-Origin', '*')
@@ -175,7 +179,7 @@ server.use(express.static(__dirname));
       console.log("getpartinfo:" + JSON.stringify(req.body))
       getpartinfo(req.body)
        // .then(getlotlist)
-        .then(getmodelog)
+        .then(getmodelog1)
         .then((result) => {
         //  console.log("send:" + JSON.stringify(result))
           res.header('Access-Control-Allow-Origin', '*')
@@ -210,6 +214,7 @@ server.use(express.static(__dirname));
         .then(getmodelog)
         .then(getchecklist)
         .then(getchecklog)
+        .then(setdammymaxqty)
         .then((result) => {
         //  console.log("send:" + JSON.stringify(result))
           res.header('Access-Control-Allow-Origin', '*')
@@ -223,7 +228,7 @@ server.use(express.static(__dirname));
       console.log("getpartinfo:" + JSON.stringify(req.body))
       getpartinfo(req.body)
        // .then(getlotlist)
-        .then(getmodelog)
+        .then(getmodelog1)
         .then((result) => {
         //  console.log("send:" + JSON.stringify(result))
           res.header('Access-Control-Allow-Origin', '*')
@@ -254,11 +259,12 @@ server.use(express.static(__dirname));
 
         getserial(req.body)
           .then(setlotlist)
+          .then(getlotstockmonth)
           .then(setlotstock)
           .then(setlotmoisture)
           .then(printlabel)
           .then(setlotlog)
-          .then(getmodelog)
+          .then(getmodelog1)
           .then((result) => {
           //  console.log("send:" + JSON.stringify(result))
             res.header('Access-Control-Allow-Origin', '*')
@@ -271,8 +277,10 @@ server.use(express.static(__dirname));
           
         } else if (req.body.mode==2 || req.body.mode==3 || req.body.mode==6) {
 
-        setlotlog(req.body)
-          .then(getlotlog)
+        getlotstockmonth(req.body)
+          .then(setlotlog)
+        // setlotlog(req.body)
+          .then(getmodelog)
           .then(gettotalstock)
           .then(getmodelog)
 
@@ -289,7 +297,9 @@ server.use(express.static(__dirname));
 
         } else if (req.body.mode==0 || req.body.mode==5) {
 
-          setlotlog(req.body)
+        getlotstockmonth(req.body)
+            .then(setlotlog)
+         // setlotlog(req.body)
             .then(edtlotlist)
             .then(setlotstock)
             .then(getmodelog)
@@ -340,22 +350,22 @@ server.use(express.static(__dirname));
 
     req.body.ip = clientIp;
     req.body.daystr = toDaystr();
+    req.body.update_time = addDayTimestr(new Date());
     req.body.modename = "吸湿";   
 
-    console.log(JSON.stringify(req.body))
-      console.log("getpartlog:" + JSON.stringify(req.body));
-      req.body.daystr = toDaystr();
-      setmoisturelog(req.body)
-        .then(setmoisturestock)
-        .then((result) => {
-        //  console.log("send:" + JSON.stringify(result))
-          res.header('Access-Control-Allow-Origin', '*')
-          res.send(result)
-        })
-        .catch((err) => {
-          console.log("error:" + JSON.stringify(err))
-          res.send(err)
-        })
+    getlotstockmonth(req.body)
+      .then(setmoisturelog)
+    // setmoisturelog(req.body)
+      .then(setmoisturestock)
+      .then((result) => {
+      //  console.log("send:" + JSON.stringify(result))
+        res.header('Access-Control-Allow-Origin', '*')
+        res.send(result)
+      })
+      .catch((err) => {
+        console.log("error:" + JSON.stringify(err))
+        res.send(err)
+      })
   });
 
   server.get('/getlog', function (req, res) {
@@ -393,19 +403,35 @@ server.use(express.static(__dirname));
    // req.body.daystr = toDaystr();
     console.log(toDaystr())
 
-     dellotlog(req.body)
-       .then(getlotlog)
-       .then(gettotalstock)
-       .then(getmodelog)
-       .then((result) => {
-       //  console.log("send:" + JSON.stringify(result))
-         res.header('Access-Control-Allow-Origin', '*')
-         res.send(result)
-      })
-       .catch((err) => {
-         console.log("error:" + JSON.stringify(err))
-         res.send(err)
-      })
+     if (req.body.mode==1){
+       dellotlog(req.body)
+        .then(getlotlog)
+        .then(gettotalstock)
+        .then(getmodelog1)
+        .then((result) => {
+        //  console.log("send:" + JSON.stringify(result))
+          res.header('Access-Control-Allow-Origin', '*')
+          res.send(result)
+        })
+        .catch((err) => {
+          console.log("error:" + JSON.stringify(err))
+          res.send(err)
+        })
+     } else {
+       dellotlog(req.body)
+        .then(getlotlog)
+        .then(gettotalstock)
+        .then(getmodelog)
+        .then((result) => {
+        //  console.log("send:" + JSON.stringify(result))
+          res.header('Access-Control-Allow-Origin', '*')
+          res.send(result)
+        })
+        .catch((err) => {
+          console.log("error:" + JSON.stringify(err))
+          res.send(err)
+        })
+     }
   })
 
 
@@ -569,8 +595,12 @@ server.use(express.static(__dirname));
           console.log("TEST:"+JSON.stringify(docs))
           if (docs.length > 0) {
             data.modelname = docs[0].modelname;
+            data.lotcount = docs[0].maxqty;
+            data.address = docs[0].address;
           } else {
             data.modelname = "NODATA";
+            data.lotcount = 0;
+            data.address = "";
           }
           resolve(data);
         }
@@ -602,7 +632,7 @@ server.use(express.static(__dirname));
           if (docs.length > 0) {
             data.modelname = docs[0].modelname;
             data.modelid = docs[0].modelid;
-            data.lot = docs[0].lot;                    
+            data.lot = docs[0].lot;               
           }
           resolve(data);
         }
@@ -624,6 +654,20 @@ server.use(express.static(__dirname));
     } else {
       resolve(data);     
     }
+   });
+ }
+
+ function getmodelog1(data) {
+   return new Promise(function (resolve, reject) {
+     lotlog.find({ mode: 1, daystr: toDaystr(), ip: data.ip }, function (err, docs) {
+       if (err) {
+         reject(err);
+       } else {
+         console.log("docs1:"+JSON.stringify(docs))
+         data.datalist = docs;
+         resolve(data);
+       }
+     }).sort({ update_time: -1});
    });
  }
 
@@ -705,20 +749,38 @@ server.use(express.static(__dirname));
   });
 }
 
+function getlotstockmonth(data) {  
+  return new Promise(function (resolve, reject) {
+    console.log("--"+data.ornerid)
+    lotstock.find({ ornerid: data.ornerid }, function (err, docs) {
+      if (err) {
+        console.log("getlotstockmonth:" + err)
+        reject(err);
+      } else {
+        if (docs.length > 0) {
+          data.month = docs[0].month;
+        }
+        resolve(data);
+      }
+    }).sort({month: -1});
+  });
+}
+
  function setlotlog(data) {
   return new Promise(function (res, rej) {
     var id = data._id + "-" + make_id() + "-" + data.mode;
     data.ornerid = data._id;
     data._id = id;
     if (data.mode==5) {
-      data.daystr = getInventDay();
+     // data.daystr = getInventDay();
+      data.daystr = toDaystr();
     } else if (data.mode==4){
       data.update_time = data.finishtime;
     } else {
       data.daystr = toDaystr();
     }
 
-    console.log("log:" + JSON.stringify(data));
+  //  console.log("log:" + JSON.stringify(data));
     lotlog.updateOne({ _id: data._id }, 
       { $set: data }, { upsert: true }
       , function (err, result) {
@@ -844,7 +906,8 @@ function settotalexec(data) {
   })
 }
  
-function printlabel(data) {
+
+function printlabel2(data) {
   return new Promise(function (resolve, reject) {
     if (data.mode==1) {
       console.log("printer:" + data.printer);
@@ -887,6 +950,101 @@ function printlabel(data) {
         str += esc + 'X22,' + data.qty;
 
         str += esc + 'H0150' + esc + 'V0110' + esc + '2D30,L,03,0,0';
+        str += esc + 'DS2,' + data._id;
+        //'2D30,L,04,0,0' + esc + 'DS2,' + '3N2-' & zero5(data.reelno) + '-' + zero6(data.lotid));
+
+        str += esc + 'Q1';
+        str += esc + 'Z';
+
+        // 文字列を配列にしておく
+
+        client.write(str); 
+        client.destroy();
+      //  var no = parseInt(data.no);
+        data.msg = "SAVE!";    
+        data.flg = 1;
+        console.log("print:")
+      resolve(data);
+   //   client.close();
+    });
+
+    // クライアント側ソケットの'data'イベントハンドラーを定義します。
+    // dataはサーバーがこのソケットに送信した内容になります。
+    client.on('data', function (data) {
+    //  console.log('DATA: ' + data);
+      data.flg = 1;
+      // Close the client socket completely
+      //   client.destroy();
+    });
+    // クライアント側'close' イベントハンドラーを定義します
+    client.on('close', function (err) {
+      console.log('Connection closed' + err);
+      client.destroy();
+    });
+
+    // クライアント側'close' イベントハンドラーを定義します
+    client.on('error', function (err) {
+        console.log('error:' + err);
+        client.destroy();
+        data.msg = "プリンタに接続できませんでした"
+        data.flg = 0;
+        resolve(data);
+      });
+    } else {
+      resolve(data);     
+    }  
+  });
+}
+
+function printlabel(data) {
+  return new Promise(function (resolve, reject) {
+    if (data.mode==1) {
+      console.log("printer:" + data.printer);
+      var HOST = data.printer;
+      var PORT = 1024;
+      var net = require('net');
+      var client = new net.Socket();
+      var esc = String.fromCharCode(27);
+      var str = "";
+      client.connect(PORT, HOST, function () {
+
+        str += esc + 'A';
+        str += esc + 'A1V00250H0390';       
+        str += esc + 'KC1';
+        str += esc + 'H0010' + esc + 'V0030'; 
+       // str += esc + "FW0202V0140H0400",
+      //  str += esc + 'H0010' + esc + 'V0010';
+        str += esc + 'P01' + esc + 'L0101';
+        //製品名
+        str += esc + 'X21,' + data.modelname.substring(0,23);
+        if (data.modelname.length > 23) {
+          str += esc + 'H0010' + esc + 'V0050';
+          str += esc + 'P01' + esc + 'L0101';
+          str += esc + 'X21,' + data.modelname.substring(24);
+        }
+        //ロット
+       /* str += esc + 'H0010' + esc + 'V0080';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X21,' + data.lot; */
+        //日付
+        str += esc + 'H0010' + esc + 'V0090';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X22,' + data._id + " " + data.address
+        //ID
+        str += esc + 'H0010' + esc + 'V0130';
+        str += esc + 'P01' + esc + 'L0102';
+        str += esc + 'X21,' + toDaystr()
+        //ロットID
+        /*
+        str += esc + 'H0010' + esc + 'V0140';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X22,' + data.address; */
+        //数量
+        str += esc + 'H0010' + esc + 'V0170';
+        str += esc + 'P01' + esc + 'L0101';
+        str += esc + 'X22,' + data.qty;
+        //QRコード
+        str += esc + 'H0170' + esc + 'V0130' + esc + '2D30,L,03,0,0';
         str += esc + 'DS2,' + data._id;
         //'2D30,L,04,0,0' + esc + 'DS2,' + '3N2-' & zero5(data.reelno) + '-' + zero6(data.lotid));
 
@@ -1046,8 +1204,10 @@ function edtlotlist(data) {
       var month = getStartDay(new Date(), 0);
       console.log("setstock 1:"+data.mode)
       var qty = data.qty;
+      var start = null;
       if (data.mode==5) {
         month = getStartDay(new Date(), 10);
+        start = offset_datetime(1);
       }
       if (data.mode==1){
         qty = 0;
@@ -1060,6 +1220,8 @@ function edtlotlist(data) {
         stock: qty,
         status: 0,
         moisture: 0,
+        start: start,
+        end: null,
         info: {
           modelname: data.modelname,
           lot: data.lot,
@@ -1207,6 +1369,13 @@ function setpartlist(data) {
           }
           res(data);
         });
+  })
+ }
+
+ function setdammymaxqty(data) {
+  return new Promise(function (res, rej) {
+      data.lotcount = 1000000; 
+      res(data);
   })
  }
 

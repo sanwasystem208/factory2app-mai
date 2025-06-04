@@ -68,6 +68,7 @@ var LotLogSchema = new mongoose.Schema(
     update_time:{ type: String },
     daystr:     { type: String },
     listid:     { type: String },
+    month:      { type: String },
     modelid:    { type: Number, min: 0, default: 0 },
     modelname:  { type: String },
     modename:   { type: String },
@@ -103,6 +104,8 @@ var LotStockSchema = new mongoose.Schema(
     stock:      { type: Number, min: 0, default: 0 },
     status:     { type: Number, min: 0, default: 0 },
     moisture:   { type: Number, min: 0, default: 0 },
+    start:      { type: String, required: false },
+    end:        { type: String, required: false },
     info:       {},
   }
 );
