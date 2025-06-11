@@ -37,15 +37,14 @@ import date_func from '../api/date_func'
     formatStartDay,
     month_startday
   } = date_func();
-
 export default {
   name: 'DEMO',
   components: {
   },
   data () {
     return {
-      records: [{ check: false, optionid: 0, url: "https://www.bing.com/", col1: 1, col2: 3},
-                { check: true, optionid: 1, url: "https://www.yahoo.co.jp/", col1: 10, col2: 3}
+      records: [{ check: false, optionid: 0, url: "", col1: 1, col2: 3},
+                { check: true, optionid: 1, url: "", col1: 10, col2: 3}
                ],
       options: [
         { value: 0, label: "bing"},
