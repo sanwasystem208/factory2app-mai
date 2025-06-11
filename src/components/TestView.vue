@@ -41,7 +41,6 @@ import date_func from '../api/date_func'
 export default {
   name: 'DEMO',
   components: {
-
   },
   data () {
     return {
