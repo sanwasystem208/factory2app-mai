@@ -759,6 +759,8 @@ function getlotstockmonth(data) {
       } else {
         if (docs.length > 0) {
           data.month = docs[0].month;
+        } else {
+          data.month = getStartDay(new Date(), 1);         
         }
         resolve(data);
       }
