@@ -21,7 +21,6 @@
 
 <script>
 import axios from "axios";
-import Decimal from 'decimal.js';
 
 import { mapState } from 'vuex'
 import date_func from '../api/date_func'
